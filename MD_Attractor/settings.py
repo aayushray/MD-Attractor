@@ -42,6 +42,7 @@ INSTALLED_APPS = [
 
     # Own apps
     'song_api',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
