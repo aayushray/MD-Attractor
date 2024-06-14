@@ -13,18 +13,21 @@ class SpotifyAPI():
         self.data = data
 
     def getSongDetails(self):
-        trackName = self.data['Track Name']
+        trackName = self.data['search']
         results = self.sp.search(q='track:' + trackName, type='track')
         self.artistDetails = results['tracks']['items'][0]['artists']
         self.artistID = self.artistDetails[0]['id']
 
+        # Fetching the Genre of the Song
         self.genres = self.collectGenres(self.artistID)
-        print(self.genres)
 
+        # List of Artists, who had collaborated with the Primary artist
         self.collaboratedArtists = self.relatedArtists(self.artistID, self.genres)
-        print(self.collaboratedArtists)
 
-        return self.collaboratedArtists
+        # for artists in self.collaboratedArtists:
+        self.topTracks = self.getTopTracks(self.collaboratedArtists)
+
+        return self.collaboratedArtists, self.topTracks
 
 
     def collectGenres(self, artistID):
@@ -35,11 +38,22 @@ class SpotifyAPI():
     
 
     def relatedArtists(self, artistID, genres):
-        collaborations = [(artistID, genres)]
+        collaborations = {artistID: genres}
         results = self.sp.artist_related_artists(artist_id = artistID)
         items = results['artists']
 
         for artist in items:
-            collaborations.append((artist['id'], artist['genres']))
+            collaborations[artist['id']] = artist['genres']
 
         return collaborations
+    
+    def getTopTracks(self, collaboratedArtists):
+        topTracks = {}
+        for artistID in collaboratedArtists:
+            results = self.sp.artist_top_tracks(artist_id = artistID)
+            currentArtistTopTracks = []
+            for trackNumber in range(0, len(results['tracks'])):
+                currentArtistTopTracks.append({results['tracks'][trackNumber]['name']: results['tracks'][trackNumber]['popularity']})
+
+            topTracks[artistID] = currentArtistTopTracks
+        return topTracks
