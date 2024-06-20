@@ -8,6 +8,8 @@ class ConstructGraph():
         self.G = nx.Graph()
 
         self.constructGraph()
+        self.similarityComparison(0.5)
+
         # print("Nodes:", self.G.nodes())
         # print("Edges:", self.G.edges())
 
@@ -17,6 +19,9 @@ class ConstructGraph():
         # nx.draw_networkx_edge_labels(self.G, pos, edge_labels=edge_labels)
         # plt.show()
 
+
+
+        # Another Approach: Sort the top tracks based on their popularity, and then compare the genres, with the root song genre.
 
 
     def constructGraph(self):
@@ -37,3 +42,18 @@ class ConstructGraph():
         commonGenres = list(set(genres1) & set(genres2))
         similarity = len(commonGenres) / max(len(genres1), len(genres2))
         return similarity
+    
+    def similarityComparison(self, threshold):
+        self.filteredEdges = []
+        for edge in self.G.edges(data=True):
+            if edge[2]['weight'] >= threshold:
+                self.filteredEdges.append(edge)
+
+        return self.filteredEdges
+    
+    def extractArtists(self):
+        self.artists = []
+        for edge in self.filteredEdges:
+            self.artists.append(edge[1])
+        
+        return self.artists
