@@ -10,17 +10,6 @@ class ConstructGraph():
         self.constructGraph()
         self.similarityComparison(0.5)
 
-        # print("Nodes:", self.G.nodes())
-        # print("Edges:", self.G.edges())
-
-        # nx.draw(self.G, with_labels=True, font_weight='bold')
-        # pos = nx.spring_layout(self.G)
-        # edge_labels = nx.get_edge_attributes(self.G, 'weight')
-        # nx.draw_networkx_edge_labels(self.G, pos, edge_labels=edge_labels)
-        # plt.show()
-
-
-
         # Another Approach: Sort the top tracks based on their popularity, and then compare the genres, with the root song genre.
 
 

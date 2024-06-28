@@ -15,6 +15,13 @@ class SpotifyAPI():
     def getSongDetails(self):
         trackName = self.data['search']
         results = self.sp.search(q='track:' + trackName, type='track')
+
+        if not len(results['tracks']['items']):
+            return None, None, None, "Error: No song found with the given name."
+
+        self.songId = results['tracks']['items'][0]['id']
+        self.songName = results['tracks']['items'][0]['name']
+
         self.artistDetails = results['tracks']['items'][0]['artists']
         self.artistID = self.artistDetails[0]['id']
 
@@ -27,7 +34,7 @@ class SpotifyAPI():
         # for artists in self.collaboratedArtists:
         self.topTracks = self.getTopTracks(self.collaboratedArtists)
 
-        return self.collaboratedArtists, self.topTracks
+        return self.songId, self.songName, self.collaboratedArtists, self.topTracks
 
 
     def collectGenres(self, artistID):
@@ -53,7 +60,12 @@ class SpotifyAPI():
             results = self.sp.artist_top_tracks(artist_id = artistID)
             currentArtistTopTracks = []
             for trackNumber in range(0, len(results['tracks'])):
-                currentArtistTopTracks.append({results['tracks'][trackNumber]['name']: results['tracks'][trackNumber]['popularity']})
+                trackInfo = {
+                    'name': results['tracks'][trackNumber]['name'],
+                    'id': results['tracks'][trackNumber]['id'],
+                    'popularity': results['tracks'][trackNumber]['popularity']
+                }
+                currentArtistTopTracks.append(trackInfo)
 
             topTracks[artistID] = currentArtistTopTracks
         return topTracks

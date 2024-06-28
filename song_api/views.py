@@ -6,28 +6,59 @@ from rest_framework.decorators import api_view
 from song_api import spotifyAPI
 from song_api import egoNetwork
 from django.http import JsonResponse
+from song_api import serializers
 
 # Create your views here.
 
 @api_view(['POST'])
 def trackDetails(request):
-    spotifyInstance = spotifyAPI.SpotifyAPI(request.data)
-    collaboratedArtists, topTracks = spotifyInstance.getSongDetails()
+    try:
+        song = models.Song.objects.get(songName= request.data['search'])
+        serializer = serializers.SongSerializer(song)
+        recommended_songs = song.recommendedSongs.all().order_by('-popularity')
+        recommendation = [s.songName for s in recommended_songs]
+        return Response({"Recommended Songs": recommendation})
 
-    graph = egoNetwork.ConstructGraph(collaboratedArtists)
-    artistNetwork = graph.extractArtists()
-    songPopularity = topTracksFromEgoNetwork(artistNetwork, topTracks)
-    print(songPopularity)
-    recommendedSongs = [data[0] for data in songPopularity]
+    
+    except models.Song.DoesNotExist:
+        spotifyInstance = spotifyAPI.SpotifyAPI(request.data)
+        songId, songName, collaboratedArtists, topTracks = spotifyInstance.getSongDetails()
 
-    return JsonResponse(recommendedSongs, safe=False)
+        if topTracks == "Error: No song found with the given name.":
+            return Response({"Error": topTracks})
+        graph = egoNetwork.ConstructGraph(collaboratedArtists)
+        artistNetwork = graph.extractArtists()
+        songPopularity = topTracksFromEgoNetwork(artistNetwork, topTracks)
+        
+        recommendedSongsName = [data['name'] for data in songPopularity][:10]
+        recommendedSongsId = [data['id'] for data in songPopularity][:10]
+        recommendedSongsPopularity = [data['popularity'] for data in songPopularity][:10]
+
+        song = models.Song.objects.create(songId = songId, songName = songName)
+        
+        for id, name, songPopularity in zip(recommendedSongsId, recommendedSongsName, recommendedSongsPopularity):
+            try: 
+                suggestion = models.RecommendedSong.objects.get(songId=id)
+            except models.RecommendedSong.DoesNotExist:
+                suggestion = models.RecommendedSong.objects.create(songId=id, songName=name, popularity=songPopularity)
+                suggestion.save()
+            song.recommendedSongs.add(suggestion)
+
+        serializer = serializers.SongSerializer(song)
+        recommended_songs = song.recommendedSongs.all().order_by('-popularity')
+        recommendation = [s.songName for s in recommended_songs]
+        return Response({"Recommended Songs": recommendation})
+
+@api_view(['GET'])
+def searchHistory(request):
+    allSongs = models.Song.objects.all()
+    serializer = serializers.SongSerializer(allSongs, many=True)
+    return Response(serializer.data)
 
 def topTracksFromEgoNetwork(artistNetwork, topTracks):
     songList = []
     for artist in artistNetwork:
-        songList.append(topTracks[artist])
+        songList.extend(topTracks[artist])
 
-    flat_list = [item for sublist in songList for item in sublist]
-    pairs = [(k, v) for d in flat_list for k, v in d.items()]
-    recommendation = sorted(pairs, key=lambda x: x[1], reverse=True)
+    recommendation = sorted(songList, key=lambda x: x['popularity'], reverse=True)
     return recommendation
