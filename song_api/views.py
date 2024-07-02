@@ -7,11 +7,12 @@ from song_api import spotifyAPI
 from song_api import egoNetwork
 from django.http import JsonResponse
 from song_api import serializers
+from typing import List, Dict
 
 # Create your views here.
 
 @api_view(['POST'])
-def trackDetails(request):
+def trackDetails(request) -> Response:
     try:
         song = models.Song.objects.get(songName= request.data['search'])
         serializer = serializers.SongSerializer(song)
@@ -50,12 +51,12 @@ def trackDetails(request):
         return Response({"Recommended Songs": recommendation})
 
 @api_view(['GET'])
-def searchHistory(request):
+def searchHistory(request) -> Response:
     allSongs = models.Song.objects.all()
     serializer = serializers.SongSerializer(allSongs, many=True)
     return Response(serializer.data)
 
-def topTracksFromEgoNetwork(artistNetwork, topTracks):
+def topTracksFromEgoNetwork(artistNetwork: List[str], topTracks: Dict[str, List[Dict[str, str]]]) -> List[Dict[str, str]]:
     songList = []
     for artist in artistNetwork:
         songList.extend(topTracks[artist])
