@@ -7,6 +7,22 @@ from typing import Dict, List, Optional, Tuple
 load_dotenv()
 
 class SpotifyAPI():
+    """
+    A class that interacts with the Spotify API to retrieve song details and related information.
+
+    Attributes:
+        client_id (str): The client ID for the Spotify API.
+        client_secret (str): The client secret for the Spotify API.
+        sp (spotipy.Spotify): An instance of the spotipy.Spotify class for making API requests.
+        data (Dict[str, str]): A dictionary containing data for the song search.
+
+    Methods:
+        getSongDetails: Retrieves the details of a song based on the search query.
+        collectGenres: Collects the genres of an artist.
+        relatedArtists: Retrieves the related artists and their genres.
+        getTopTracks: Retrieves the top tracks of collaborated artists.
+    """
+
     def __init__(self, data: Dict[str, str]):
         self.client_id: str = os.getenv('SPOTIFY_CLIENT_ID')
         self.client_secret: str = os.getenv('SPOTIFY_CLIENT_SECRET')
@@ -14,6 +30,12 @@ class SpotifyAPI():
         self.data: Dict[str, str] = data
 
     def getSongDetails(self) -> Tuple[Optional[str], Optional[str], Optional[Dict[str, List[str]]], Optional[Dict[str, List[Dict[str, str]]]]]:
+        """
+        Retrieves the details of a song based on the search query.
+
+        Returns:
+            Tuple[Optional[str], Optional[str], Optional[Dict[str, List[str]]], Optional[Dict[str, List[Dict[str, str]]]]]: A tuple containing the song ID, song name, collaborated artists, and their top tracks.
+        """
         trackName: str = self.data['search']
         results: Dict[str, Dict[str, List[Dict[str, str]]]] = self.sp.search(q='track:' + trackName, type='track')
 
@@ -38,14 +60,35 @@ class SpotifyAPI():
         return self.songId, self.songName, self.collaboratedArtists, self.topTracks
 
 
+
     def collectGenres(self, artistID: str) -> List[str]:
+        """
+        Collects the genres of an artist.
+
+        Args:
+            artistID (str): The ID of the artist.
+
+        Returns:
+            List[str]: A list of genres associated with the artist.
+        """
         result: Dict[str, List[str]] = self.sp.artist(artistID)
         genres: List[str] = result['genres']
 
         return genres
     
 
+
     def relatedArtists(self, artistID: str, genres: List[str]) -> Dict[str, List[str]]:
+        """
+        Retrieves the related artists and their genres.
+
+        Args:
+            artistID (str): The ID of the artist.
+            genres (List[str]): A list of genres associated with the artist.
+
+        Returns:
+            Dict[str, List[str]]: A dictionary containing the related artists and their genres.
+        """
         collaborations: Dict[str, List[str]] = {artistID: genres}
         results: Dict[str, List[Dict[str, str]]] = self.sp.artist_related_artists(artist_id = artistID)
         items: List[Dict[str, str]] = results['artists']
@@ -55,7 +98,18 @@ class SpotifyAPI():
 
         return collaborations
     
+
+    
     def getTopTracks(self, collaboratedArtists: Dict[str, List[str]]) -> Dict[str, List[Dict[str, str]]]:
+        """
+        Retrieves the top tracks of collaborated artists.
+
+        Args:
+            collaboratedArtists (Dict[str, List[str]]): A dictionary containing the collaborated artists and their genres.
+
+        Returns:
+            Dict[str, List[Dict[str, str]]]: A dictionary containing the collaborated artists and their top tracks.
+        """
         topTracks: Dict[str, List[Dict[str, str]]] = {}
         for artistID in collaboratedArtists:
             results: Dict[str, List[Dict[str, str]]] = self.sp.artist_top_tracks(artist_id = artistID)
