@@ -124,3 +124,21 @@ class SpotifyAPI():
 
             topTracks[artistID] = currentArtistTopTracks
         return topTracks
+    
+
+    def networkedArtist(self, artistsID: List[str]) -> List[str]:
+        """
+        Retrieves the names of the networked artists.
+
+        Args:
+            artistsID (List[str]): A list of artist IDs.
+
+        Returns:
+            List[str]: A list of names of the networked artists.
+        """
+        networkedArtist: List[str] = []
+        for id in artistsID:
+            result = self.sp.artist(id)
+            networkedArtist.append(result['name'])
+
+        return networkedArtist

@@ -4,3 +4,4 @@ from song_api import models
 
 admin.site.register(models.Song)
 admin.site.register(models.RecommendedSong)
+admin.site.register(models.ArtistNetwork)

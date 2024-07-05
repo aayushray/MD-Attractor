@@ -23,7 +23,6 @@ class ConstructGraph():
     def __init__(self, collaboratedArtists: Dict[str, List[str]]) -> None:
         self.data = collaboratedArtists
         self.G = nx.Graph()
-
         self.constructGraph()
         self.similarityComparison(0.5)
 
@@ -69,12 +68,12 @@ class ConstructGraph():
         Returns:
             List[Tuple[str, str, Dict[str, float]]]: A list of filtered edges, where each edge is represented as a tuple containing the source artist, target artist, and a dictionary of attributes.
         """
-        filteredEdges = []
+        self.filteredEdges = []
         for edge in self.G.edges(data=True):
             if edge[2]['weight'] >= threshold:
-                filteredEdges.append(edge)
+                self.filteredEdges.append(edge)
 
-        return filteredEdges
+        return self.filteredEdges
     
     def extractArtists(self) -> List[str]:
         """
